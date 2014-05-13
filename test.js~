@@ -139,7 +139,7 @@ http.createServer(function (request, response) {
 	var html = dataStuff;
 
 	html = html.replace('REPLACE_ME_2013','[' + testArray2013 + ']');
-	html = html.replace('REPLACE_ME_2014','[' + testArray2014 + ']');
+	html = html.replace('REPLACE_ME_2014','[' + testArray2013 + ']');
 
     response.end(html, 'utf-8');
 

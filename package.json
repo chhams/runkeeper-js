@@ -10,7 +10,8 @@
   "main": "./lib/runkeeper",
   "dependencies": {
     "request": ">= 1.9.0",
-    "underscore": "^1.6.0"
+    "underscore": "^1.6.0",
+    "oauth": "^0.9.11"
   },
   "engines": {
     "node": ">= 0.4.0"
