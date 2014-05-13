@@ -1,8 +1,9 @@
-var request = require('request');
-var api_domain = "api.runkeeper.com";
 var _ = require('underscore');
+var http = require('http');
 var bearer = require('./token');
-var http = require('http'); 
+var request = require('request');
+
+var api_domain = "api.runkeeper.com";
 var testArray2013 = [];
 var testArray2014 = [];
 var dataStuff;
@@ -98,16 +99,37 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 		totalDistance += item.total_distance;
 		durations.push(item.total_distance);
 
+        item.maxLong = 0;
+        item.maxLat = 0;
+        item.minLong = 100;
+        item.minLat = 100;
+
 		//console.log('Run ' + counter-- + ' ' + item.total_distance);
 		//console.log(item);
-		/*callApi(item.uri, function (err2, itemBody){
-                	console.log('TESTING ITEMS');
- 			console.log(itemBody);
-			console.log('--- --- ---');
-		});*/
+		callApi(item.uri, function (err2, itemBody){
+            _.each(itemBody.path, function(pp){
+                if(pp.longitude > item.maxLong){
+                    item.maxLong = pp.longitude;
+                }
+                if(pp.latitude > item.maxLat){
+                    item.maxLat = pp.latitude;
+                }
+                if(pp.longitude < item.minLong){
+                    item.minLong = pp.longitude;
+                }
+                if(pp.latitude < item.minLat){
+                    item.minLat = pp.latitude;
+                }
+
+            });
+            //console.log('TESTING ITEMS');
+ 			//console.log(itemBody);
+			//console.log('--- --- ---');
+            console.log(item.total_distance + ' ' + item.maxLat + ' ' + item.maxLong + ' ' + item.minLat + ' ' + item.minLong);
+		});
 	}) 
-	
-	reduceByMonth(items);
+
+	//reduceByMonth(items);
 
 	//console.log(items);
 	console.log('');
@@ -130,7 +152,7 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 
 
 
-
+/*
 http.createServer(function (request, response) {
 
     response.writeHead(200, { 'Content-Type': 'text/html' });
@@ -145,6 +167,7 @@ http.createServer(function (request, response) {
     response.end(html, 'utf-8');
 
 }).listen(1234);
+*/
 
 
 
