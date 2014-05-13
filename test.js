@@ -1,7 +1,7 @@
 var request = require('request');
 var api_domain = "api.runkeeper.com";
 var _ = require('underscore');
-var bearer = 'b4deb9c811fe407cae8e9c6953e1868a';
+var bearer = 'ab4deb9c811fe407cae8e9c6953e1868ab';
 var http = require('http'); 
 var testArray2013 = [];
 var testArray2014 = [];
@@ -101,7 +101,8 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 		//console.log('Run ' + counter-- + ' ' + item.total_distance);
 		//console.log(item);
 		/*callApi(item.uri, function (err2, itemBody){
-                	console.log(itemBody);
+                	console.log('TESTING ITEMS');
+ 			console.log(itemBody);
 			console.log('--- --- ---');
 		});*/
 	}) 
