@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var http = require('http');
+var async = require('async');
 var bearer = require('./token');
 var request = require('request');
 
@@ -83,7 +84,7 @@ var reduceByMonth = function(items){
 
 
 
-callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
+callApi('/fitnessActivities?page=0&pageSize=20', function(err, body){
 	var items = body.items;
 
 	var totalDistance = 0;
@@ -91,7 +92,7 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 	var counter = body.items.length;
 	var durations = [];
 
-	_.each(items, function(item){
+    async.each(items, function(item, cb){
 		mapByMonth(item);
 		
 
@@ -124,10 +125,12 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
             });
             //console.log('TESTING ITEMS');
  			//console.log(itemBody);
-			//console.log('--- --- ---');
+			// og('--- --- ---');
             console.log(item.total_distance + ' ' + item.maxLat + ' ' + item.maxLong + ' ' + item.minLat + ' ' + item.minLong);
+            cb();
 		});
-	}) 
+        //console.log('Test: ' + item.duration);
+	}, function(err){console.log('Done')})
 
 	//reduceByMonth(items);
 
