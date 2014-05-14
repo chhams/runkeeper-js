@@ -13,73 +13,73 @@ var dataStuff;
 
 var fs = require('fs')
 fs.readFile('test.html', 'utf8', function (err,data) {
-  if (err) {
-    return console.log(err);
-  }
-  dataStuff = data; 
+    if (err) {
+        return console.log(err);
+    }
+    dataStuff = data;
 });
 
 var callApi = function(endpoint, callback) {
-        var request_details = {
-                method: 'GET',
-                headers: {'Accept': '*\/*',
-        'Authorization' : 'Bearer ' + bearer},
-                uri: "https://" + api_domain + endpoint
-        };
-        request(request_details, function(error, response, body) {
-                try {
-                        parsed = JSON.parse(body);
-                } catch(e) {
-                        error = new Error('Body reply is not a valid JSON string.');
-                        error.runkeeperBody = body;
-                } finally {
-                        callback(error, parsed);
-                }
-        });
+    var request_details = {
+        method: 'GET',
+        headers: {'Accept': '*\/*',
+            'Authorization' : 'Bearer ' + bearer},
+        uri: "https://" + api_domain + endpoint
+    };
+    request(request_details, function(error, response, body) {
+        try {
+            parsed = JSON.parse(body);
+        } catch(e) {
+            error = new Error('Body reply is not a valid JSON string.');
+            error.runkeeperBody = body;
+        } finally {
+            callback(error, parsed);
+        }
+    });
 };
 
 var mapByMonth = function(item){
-	item.month = new Date(item.start_time).getMonth() + 1;
-	item.year = new Date(item.start_time).getFullYear();
-	item.date = item.year + '-' + item.month;
-}; 
+    item.month = new Date(item.start_time).getMonth() + 1;
+    item.year = new Date(item.start_time).getFullYear();
+    item.date = item.year + '-' + item.month;
+};
 
 var reduceByMonth = function(items){
-	var x = {};
+    var x = {};
 
-	for (var i = 0; i < items.length; ++i) {
-		if(items[i].year === 2013){
-			if(testArray2013[items[i].month -1] == undefined){
-				testArray2013[items[i].month -1] = items[i].total_distance /1000;
-			}
-			else{
-				testArray2013[items[i].month -1] += items[i].total_distance /1000;
-			}
+    for (var i = 0; i < items.length; ++i) {
+        if(items[i].year === 2013){
+            if(testArray2013[items[i].month -1] == undefined){
+                testArray2013[items[i].month -1] = items[i].total_distance /1000;
+            }
+            else{
+                testArray2013[items[i].month -1] += items[i].total_distance /1000;
+            }
 
-		}
+        }
 
-		if(items[i].year === 2014){
-			if(testArray2014[items[i].month -1] == undefined){
-				testArray2014[items[i].month -1] = items[i].total_distance /1000;
-			}
-			else{
-				testArray2014[items[i].month -1] += items[i].total_distance /1000;
-			}
+        if(items[i].year === 2014){
+            if(testArray2014[items[i].month -1] == undefined){
+                testArray2014[items[i].month -1] = items[i].total_distance /1000;
+            }
+            else{
+                testArray2014[items[i].month -1] += items[i].total_distance /1000;
+            }
 
-		}
+        }
 
 
-    		var obj = items[i];
+        var obj = items[i];
 
-    		if (x[obj.date] == undefined){
-			x[obj.date] = obj.total_distance /1000;
-		}else{
-			x[obj.date] = x[obj.date] += obj.total_distance / 1000;
+        if (x[obj.date] == undefined){
+            x[obj.date] = obj.total_distance /1000;
+        }else{
+            x[obj.date] = x[obj.date] += obj.total_distance / 1000;
 
-		}
-	}
-	console.log('ARRAY')
-	console.log(x);
+        }
+    }
+    console.log('ARRAY')
+    console.log(x);
 }
 
 
@@ -87,27 +87,27 @@ var reduceByMonth = function(items){
 var difference = function (a, b) { return Math.abs(a - b) }
 
 var compare = function ( a,b) {
-  if (a.routeId < b.routeId)
-     return -1;
-  if (a.routeId > b.routeId)
-    return 1;
-  if (a.duration < b.duration)
-     return -1;
-  if (a.duration > b.duration)
-    return 1;
-  return 0;
+    if (a.routeId < b.routeId)
+        return -1;
+    if (a.routeId > b.routeId)
+        return 1;
+    if (a.duration < b.duration)
+        return -1;
+    if (a.duration > b.duration)
+        return 1;
+    return 0;
 }
 
 function median(values) {
- 
-values.sort( function(a,b) {return a - b;} );
- 
-var half = Math.floor(values.length/2);
- 
-if(values.length % 2)
-return values[half];
-else
-return (values[half-1] + values[half]) / 2.0;
+
+    values.sort( function(a,b) {return a - b;} );
+
+    var half = Math.floor(values.length/2);
+
+    if(values.length % 2)
+        return values[half];
+    else
+        return (values[half-1] + values[half]) / 2.0;
 }
 
 
@@ -125,44 +125,44 @@ var convertToTime = function (mySeconds) {
 }
 
 var isItemSame = function(item1, item2){
-	var totalDifference = 0;
-	totalDifference += difference(item1.maxLat, item2.maxLat);
-	totalDifference += difference(item1.minLat, item2.minLat);
-	totalDifference += difference(item1.maxLong, item2.maxLong);
-	totalDifference += difference(item1.minLong, item2.minLong);
+    var totalDifference = 0;
+    totalDifference += difference(item1.maxLat, item2.maxLat);
+    totalDifference += difference(item1.minLat, item2.minLat);
+    totalDifference += difference(item1.maxLong, item2.maxLong);
+    totalDifference += difference(item1.minLong, item2.minLong);
 
-	if(totalDifference > 0.002){
-		return false;	
-	}
-	return true;
-	//console.log('Total diff: ' + totalDifference + ' for ' + item1.total_distance + ' vs ' + item2.total_distance);	
+    if(totalDifference > 0.002){
+        return false;
+    }
+    return true;
+    //console.log('Total diff: ' + totalDifference + ' for ' + item1.total_distance + ' vs ' + item2.total_distance);
 };
 
 
 callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
-	var items = body.items;
+    var items = body.items;
 
-	var totalDistance = 0;
-	var totalTime = 0;
-	var counter = body.items.length;
-	var durations = [];
+    var totalDistance = 0;
+    var totalTime = 0;
+    var counter = body.items.length;
+    var durations = [];
 
     async.each(items, function(item, cb){
-		mapByMonth(item);
-		
+        mapByMonth(item);
 
-		totalTime += item.duration;
-		totalDistance += item.total_distance;
-		durations.push(item.total_distance);
+
+        totalTime += item.duration;
+        totalDistance += item.total_distance;
+        durations.push(item.total_distance);
 
         item.maxLong = 0;
         item.maxLat = 0;
         item.minLong = 100;
         item.minLat = 100;
 
-		//console.log('Run ' + counter-- + ' ' + item.total_distance);
-		//console.log(item);
-		callApi(item.uri, function (err2, itemBody){
+        //console.log('Run ' + counter-- + ' ' + item.total_distance);
+        //console.log(item);
+        callApi(item.uri, function (err2, itemBody){
             _.each(itemBody.path, function(pp){
                 if(pp.longitude > item.maxLong){
                     item.maxLong = pp.longitude;
@@ -179,67 +179,91 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 
             });
             //console.log('TESTING ITEMS');
- 			//console.log(itemBody);
-			// og('--- --- ---');
+            //console.log(itemBody);
+            // og('--- --- ---');
             //console.log(item.total_distance + ' ' + item.maxLat + ' ' + item.maxLong + ' ' + item.minLat + ' ' + item.minLong);
             cb();
-		});
+        });
         //console.log('Test: ' + item.duration);
-	}, function(err){
+    }, function(err){
 
-		var counti = 1;
-		_.each(items, function(item1){
-			_.each(items, function(item2){
-				if(isItemSame(item1,item2) && item2.route){
-					item1.routeId = item2.routeId;					
-					item1.route = item2.route;
-				}	
-			});
+        var counti = 1;
+        _.each(items, function(item1){
+            _.each(items, function(item2){
+                if(isItemSame(item1,item2) && item2.route){
+                    item1.routeId = item2.routeId;
+                    item1.route = item2.route;
+                }
+            });
 
-			if(!item1.route){
-				item1.routeId = counti;
-				item1.route = 'Route ' + counti++;
-			};		
-		});
+            if(!item1.route){
+                item1.routeId = counti;
+                item1.route = 'Route ' + counti++;
+            };
+        });
 
-		items.sort(compare);
+        items.sort(compare);
 
-		var lastI;
-		var mediaCalc = [];
-		_.each(items, function(item){
-			
-			if(lastI && lastI.route !== item.route){
-				console.log('Median: ' + median(mediaCalc) + ' Average: ' + mediaCalc.map(function(x,i,arr){return x/arr.length}).reduce(function(a,b){return a + b}));
-				console.log(' --- --- --- '); //Average Distance: ' + (routeDistance / nextCount));
-				mediaCalc = [];
-			}
-			mediaCalc.push(item.total_distance);
-			lastI = item;
-			console.log(item.route + ' ' +  item.start_time  + ' TIME: ' + 
-				convertToTime(item.duration) + ' ' + item.duration + ' ' + item.total_distance + 
-				' Average: ' + (item.total_distance / item.duration) * 3.6 + ' km\/h');
-		});
-	})
+        var lastI;
+        var mediaCalc = [];
+        var itemContainer = []
+        _.each(items, function(item){
 
-	//reduceByMonth(items);
+            if(lastI && lastI.route !== item.route){
 
-	//console.log(items);
-	console.log('');
-	console.log('Total Distance: ' + totalDistance / 1000 + ' km' );
-	console.log('Total Time: ' + totalTime /60 + ' min' );
-	console.log('Average: ' + (totalDistance / totalTime) * 3.6 + ' km\/h');
-	console.log('ItemCount: ' + items.length);
-	console.log('');
-	
-	/*var last;
-	var distance = 0;
-	_.each(durations.sort(),function(entry){
- 		if(last){
-			distance = entry - last;
-		}
-		console.log(entry + '   ' + distance);
-		last = entry;
-	})*/
+                _.each(itemContainer, function(ic){
+                    ic.median = median(mediaCalc);
+                    ic.average = mediaCalc.map(function(x,i,arr){return x/arr.length}).reduce(function(a,b){return a + b});
+                });
+
+                mediaCalc = [];
+                itemContainer = [];
+            }
+            mediaCalc.push(item.total_distance);
+            itemContainer.push(item);
+            lastI = item;
+
+        });
+
+	_.each(itemContainer, function(ic){
+		ic.median = median(mediaCalc);
+                ic.average = mediaCalc.map(function(x,i,arr){return x/arr.length}).reduce(function(a,b){return a + b});
+        });
+
+
+
+        var last2;
+        _.each(items, function(item){
+            if(last2 && last2.route !== item.route){
+                console.log(' --- --- --- ');
+            };
+            last2 = item;
+
+            console.log(item.route + ' ' +  item.start_time  + ' TIME: ' +
+                convertToTime(item.duration) + ' ' + Math.floor(item.duration) + ' ' + Math.floor(item.median) + ' ' + + Math.floor(item.total_distance) + ' OFF: ' + Math.floor(difference(item.median, item.total_distance)) +
+                ' Average: ' + (item.median / item.duration) * 3.6 + ' km\/h');
+        });
+    })
+
+    //reduceByMonth(items);
+
+    //console.log(items);
+    console.log('');
+    console.log('Total Distance: ' + totalDistance / 1000 + ' km' );
+    console.log('Total Time: ' + totalTime /60 + ' min' );
+    console.log('Average: ' + (totalDistance / totalTime) * 3.6 + ' km\/h');
+    console.log('ItemCount: ' + items.length);
+    console.log('');
+
+    /*var last;
+     var distance = 0;
+     _.each(durations.sort(),function(entry){
+     if(last){
+     distance = entry - last;
+     }
+     console.log(entry + '   ' + distance);
+     last = entry;
+     })*/
 });
 
 
@@ -247,21 +271,21 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 
 
 /*
-http.createServer(function (request, response) {
+ http.createServer(function (request, response) {
 
-    response.writeHead(200, { 'Content-Type': 'text/html' });
+ response.writeHead(200, { 'Content-Type': 'text/html' });
 
-	console.log(testArray2013);
-	
-	var html = dataStuff;
+ console.log(testArray2013);
 
-	html = html.replace('REPLACE_ME_2013','[' + testArray2013 + ']');
-	html = html.replace('REPLACE_ME_2014','[' + testArray2014 + ']');
+ var html = dataStuff;
 
-    response.end(html, 'utf-8');
+ html = html.replace('REPLACE_ME_2013','[' + testArray2013 + ']');
+ html = html.replace('REPLACE_ME_2014','[' + testArray2014 + ']');
 
-}).listen(1234);
-*/
+ response.end(html, 'utf-8');
+
+ }).listen(1234);
+ */
 
 
 
