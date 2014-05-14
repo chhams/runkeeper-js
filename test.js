@@ -84,7 +84,48 @@ var reduceByMonth = function(items){
 
 
 
-callApi('/fitnessActivities?page=0&pageSize=20', function(err, body){
+var difference = function (a, b) { return Math.abs(a - b) }
+
+var compare = function ( a,b) {
+  if (a.route !== a.route)
+     return -1;
+  if (a.duration < b.duration)
+     return -1;
+  if (a.duration > b.duration)
+    return 1;
+  return 0;
+}
+
+
+var convertToTime = function (mySeconds) {
+    var sec_num = parseInt(mySeconds, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    var time    = hours+':'+minutes+':'+seconds;
+    return time;
+}
+
+var isItemSame = function(item1, item2){
+	var totalDifference = 0;
+	totalDifference += difference(item1.maxLat, item2.maxLat);
+	totalDifference += difference(item1.minLat, item2.minLat);
+	totalDifference += difference(item1.maxLong, item2.maxLong);
+	totalDifference += difference(item1.minLong, item2.minLong);
+
+	if(totalDifference > 0.002){
+		return false;	
+	}
+	return true;
+	//console.log('Total diff: ' + totalDifference + ' for ' + item1.total_distance + ' vs ' + item2.total_distance);	
+};
+
+
+callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 	var items = body.items;
 
 	var totalDistance = 0;
@@ -126,11 +167,36 @@ callApi('/fitnessActivities?page=0&pageSize=20', function(err, body){
             //console.log('TESTING ITEMS');
  			//console.log(itemBody);
 			// og('--- --- ---');
-            console.log(item.total_distance + ' ' + item.maxLat + ' ' + item.maxLong + ' ' + item.minLat + ' ' + item.minLong);
+            //console.log(item.total_distance + ' ' + item.maxLat + ' ' + item.maxLong + ' ' + item.minLat + ' ' + item.minLong);
             cb();
 		});
         //console.log('Test: ' + item.duration);
-	}, function(err){console.log('Done')})
+	}, function(err){
+
+		var counti = 1;
+		_.each(items, function(item1){
+			_.each(items, function(item2){
+				if(isItemSame(item1,item2) && item2.route){
+					item1.route = item2.route;
+				}	
+			});
+
+			if(!item1.route){
+				item1.route = 'Route ' + counti++;
+			};		
+		});
+
+		items.sort(compare);
+
+		var lastI;
+		_.each(items, function(item){
+			if(lastI && lastI.route !== item.route){
+				console.log(' --- --- ---')
+			}
+			lastI = item;
+			console.log(item.route + ' ' +  item.start_time  + ' TIME: ' + convertToTime(item.duration) + ' ' + item.duration + ' ' + item.total_distance);
+		});
+	})
 
 	//reduceByMonth(items);
 
@@ -152,6 +218,8 @@ callApi('/fitnessActivities?page=0&pageSize=20', function(err, body){
 		last = entry;
 	})*/
 });
+
+
 
 
 
