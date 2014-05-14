@@ -87,13 +87,27 @@ var reduceByMonth = function(items){
 var difference = function (a, b) { return Math.abs(a - b) }
 
 var compare = function ( a,b) {
-  if (a.route !== a.route)
+  if (a.routeId < b.routeId)
      return -1;
+  if (a.routeId > b.routeId)
+    return 1;
   if (a.duration < b.duration)
      return -1;
   if (a.duration > b.duration)
     return 1;
   return 0;
+}
+
+function median(values) {
+ 
+values.sort( function(a,b) {return a - b;} );
+ 
+var half = Math.floor(values.length/2);
+ 
+if(values.length % 2)
+return values[half];
+else
+return (values[half-1] + values[half]) / 2.0;
 }
 
 
@@ -177,11 +191,13 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 		_.each(items, function(item1){
 			_.each(items, function(item2){
 				if(isItemSame(item1,item2) && item2.route){
+					item1.routeId = item2.routeId;					
 					item1.route = item2.route;
 				}	
 			});
 
 			if(!item1.route){
+				item1.routeId = counti;
 				item1.route = 'Route ' + counti++;
 			};		
 		});
@@ -189,12 +205,19 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 		items.sort(compare);
 
 		var lastI;
+		var mediaCalc = [];
 		_.each(items, function(item){
+			
 			if(lastI && lastI.route !== item.route){
-				console.log(' --- --- ---')
+				console.log('Median: ' + median(mediaCalc) + ' Average: ' + mediaCalc.map(function(x,i,arr){return x/arr.length}).reduce(function(a,b){return a + b}));
+				console.log(' --- --- --- '); //Average Distance: ' + (routeDistance / nextCount));
+				mediaCalc = [];
 			}
+			mediaCalc.push(item.total_distance);
 			lastI = item;
-			console.log(item.route + ' ' +  item.start_time  + ' TIME: ' + convertToTime(item.duration) + ' ' + item.duration + ' ' + item.total_distance);
+			console.log(item.route + ' ' +  item.start_time  + ' TIME: ' + 
+				convertToTime(item.duration) + ' ' + item.duration + ' ' + item.total_distance + 
+				' Average: ' + (item.total_distance / item.duration) * 3.6 + ' km\/h');
 		});
 	})
 
