@@ -4,18 +4,34 @@ var async = require('async');
 var bearer = require('./token');
 var request = require('request');
 var restify = require('restify');
-var fs = require('fs')
+var fs = require('fs');
 
+
+var m2012 = [0,0,0,0,0,0,0,0,0,0,0,0];
+var m2013 = [0,0,0,0,0,0,0,0,0,0,0,0];
+var m2014 = [0,0,0,0,0,0,0,0,0,0,0,0];
+
+var t2012 = [0,0,0,0,0,0,0,0,0,0,0,0];
+var t2013 = [0,0,0,0,0,0,0,0,0,0,0,0];
+var t2014 = [0,0,0,0,0,0,0,0,0,0,0,0];
 
 var api_domain = "api.runkeeper.com";
 var dataStuff;
-var items = []
+var chartStuff;
+var items = [];
 
 fs.readFile('other.html', 'utf8', function (err,data) {
     if (err) {
         return console.log(err);
     }
     dataStuff = data;
+});
+
+fs.readFile('barTest.html', 'utf8', function (err,data) {
+    if (err) {
+        return console.log(err);
+    }
+    chartStuff = data;
 });
 
 var callApi = function(endpoint, callback) {
@@ -44,44 +60,21 @@ var mapByMonth = function(item){
 };
 
 var reduceByMonth = function(items){
-    var x = {};
-
     for (var i = 0; i < items.length; ++i) {
-        if(items[i].year === 2013){
-            if(testArray2013[items[i].month -1] == undefined){
-                testArray2013[items[i].month -1] = items[i].total_distance /1000;
-            }
-            else{
-                testArray2013[items[i].month -1] += items[i].total_distance /1000;
-            }
-
+        if(items[i].year === 2012){
+        	m2012[items[i].month -1] += items[i].total_distance /1000;
+		t2012[items[i].month -1] += items[i].duration / 60;
         }
-
+	if(items[i].year === 2013){
+        	m2013[items[i].month -1] += items[i].total_distance /1000;
+		t2013[items[i].month -1] += items[i].duration / 60;
+        }
         if(items[i].year === 2014){
-            if(testArray2014[items[i].month -1] == undefined){
-                testArray2014[items[i].month -1] = items[i].total_distance /1000;
-            }
-            else{
-                testArray2014[items[i].month -1] += items[i].total_distance /1000;
-            }
-
-        }
-
-
-        var obj = items[i];
-
-        if (x[obj.date] == undefined){
-            x[obj.date] = obj.total_distance /1000;
-        }else{
-            x[obj.date] = x[obj.date] += obj.total_distance / 1000;
-
+        	m2014[items[i].month -1] += items[i].total_distance /1000;
+		t2014[items[i].month -1] += items[i].duration / 60;
         }
     }
-    console.log('ARRAY')
-    console.log(x);
 }
-
-
 
 var difference = function (a, b) { return Math.abs(a - b) }
 
@@ -134,7 +127,6 @@ var isItemSame = function(item1, item2){
         return false;
     }
     return true;
-    //console.log('Total diff: ' + totalDifference + ' for ' + item1.total_distance + ' vs ' + item2.total_distance);
 };
 
 var loadRunData = function(cb){
@@ -176,13 +168,8 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
                 }
 
             });
-            //console.log('TESTING ITEMS');
-            //console.log(itemBody);
-            // og('--- --- ---');
-            //console.log(item.total_distance + ' ' + item.maxLat + ' ' + item.maxLong + ' ' + item.minLat + ' ' + item.minLong);
             cb();
         });
-        //console.log('Test: ' + item.duration);
     }, function(err){
 
         var counti = 1;
@@ -228,31 +215,18 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
                 ic.average = mediaCalc.map(function(x,i,arr){return x/arr.length}).reduce(function(a,b){return a + b});
         });
 
+	reduceByMonth(items);
+
 	cb();
-
-
-
     })
-
-
 });
-
 };
 
 var displayData = function(){
-	 var html = dataStuff;
-
+	var html = dataStuff;
 	var htmlStuff = '';
-	//var htmlStuff = '<!DOCTYPE html><html><head><title>My Title</title></head><body>';
-	
-	//htmlStuff += '<br>'
-        //htmlStuff += 'Total Distance: ' + totalDistance / 1000 + ' km' +'\n';
-    	//htmlStuff +='Total Time: ' + totalTime /60 + ' min' +'\n';
-    	//htmlStuff +='Average: ' + (totalDistance / totalTime) * 3.6 + ' km\/h'+'\n';
-    	//htmlStuff +='ItemCount: ' + items.length +'<br>';
-    	//htmlStuff += '<br>'
-
 	var last2;
+
         _.each(items, function(item){
             if(last2 && last2.route !== item.route){
                 //htmlStuff += ' --- --- --- <br>';
@@ -275,10 +249,18 @@ var displayData = function(){
 
  	html = html.replace('<REPLACE>',htmlStuff);
 
-	return html;// + '</body></html>';
-
+	return html;
 };
 
+var displayChart = function(){
+	var html = chartStuff;
+
+ 	html = html.replace('<REPLACE1>','[' + m2012 +']');
+ 	html = html.replace('<REPLACE2>','[' + m2013 +']');
+ 	html = html.replace('<REPLACE3>','[' + m2014 +']');
+
+	return html;
+};
 
 function respondReload(req, res, next) {
   res.send('loading data...');
@@ -287,9 +269,7 @@ function respondReload(req, res, next) {
   loadRunData(function(){ 
 	console.log('done')
 	res.send('done');
-  });
-
-	
+  });	
 }
 
 function respondData(req, res, next) {
@@ -299,35 +279,27 @@ function respondData(req, res, next) {
 });
 res.write(displayData());
 res.end();
+}
 
-  //res.send(displayData());
+function respondChart(req, res, next) {
+	res.writeHead(200, {
+  'Content-Length': Buffer.byteLength(displayChart()),
+  'Content-Type': 'text/html'
+});
+res.write(displayChart());
+res.end();
 }
 
 var server = restify.createServer();
 server.get('/runkeeper/reload', respondReload);
 server.get('/runkeeper/data', respondData);
+server.get('/runkeeper/chart', respondChart);
 
 server.listen(3333, function() {
   console.log('%s listening at %s', server.name, server.url);
 });
 
 
-/*
- http.createServer(function (request, response) {
-
- response.writeHead(200, { 'Content-Type': 'text/html' });
-
- console.log(testArray2013);
-
- var html = dataStuff;
-
- html = html.replace('REPLACE_ME_2013','[' + testArray2013 + ']');
- html = html.replace('REPLACE_ME_2014','[' + testArray2014 + ']');
-
- response.end(html, 'utf-8');
-
- }).listen(1234);
- */
 
 
 
