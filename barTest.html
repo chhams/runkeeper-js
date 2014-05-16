@@ -4,35 +4,10 @@
 
 <h1>Kilometers per month</h1>
 
-<canvas id="bar" data-type="Bar"></canvas>
+<canvas id="bar" data-type="Bar" width="1200" height="800"></canvas>
 
 
 <script>
-
-(function() {
-    var canvas = document.getElementById('bar'),
-            context = canvas.getContext('2d');
-
-    // resize the canvas to fill browser window dynamically
-    window.addEventListener('resize', resizeCanvas, false);
-
-    function resizeCanvas() {
-            canvas.width = window.innerWidth - 100;
-            canvas.height = window.innerHeight - 100;
-
-            /**
-             * Your drawings need to be inside this function otherwise they will be reset when 
-             * you resize the browser window and the canvas goes will be cleared.
-             */
-            drawStuff(); 
-    }
-    resizeCanvas();
-
-    function drawStuff() {
-            // do your drawing stuff here
-    }
-})();
-
 var ctx = document.getElementById("bar").getContext("2d");
 
 var data = {
