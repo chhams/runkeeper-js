@@ -1,81 +1,60 @@
 <!DOCTYPE html>
 <html>
-  <head>
-	
-    <title>Dynatable.js - jQuery plugin for HTML5+JSON interactive tables and more</title>
+<head>
 
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/reset.css" />
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/bootstrap-2.3.2.min.css" />
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/application.css" />
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/project.css" />
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/pygments.css" />
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/share.css" />
+    <title>Runkeeper statistics</title>
+
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/reset.css"/>
+    <link rel="stylesheet" media="all"
+          href="https://s3.amazonaws.com/dynatable-docs-assets/css/bootstrap-2.3.2.min.css"/>
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/application.css"/>
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/project.css"/>
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/pygments.css"/>
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/share.css"/>
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/jquery.dynatable.css"/>
     <link href='//fonts.googleapis.com/css?family=Nunito:300' rel='stylesheet' type='text/css'>
     <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/dynatable-docs.css" />
+    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/dynatable-docs.css"/>
     <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery-1.9.1.min.js'></script>
     <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery.scrollTo.js'></script>
     <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery.toc.min.js'></script>
-    <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery.sharrre-1.2.0.min.js'></script>
-
-
-    <!-- resources for project demos //-->
-    
-    <link rel="stylesheet" media="all" href="https://s3.amazonaws.com/dynatable-docs-assets/css/jquery.dynatable.css" />
-    
-    
+    <script type='text/javascript'
+            src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery.sharrre-1.2.0.min.js'></script>
     <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/jquery.dynatable.js'></script>
-    
-    <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/highcharts.js'></script>	
+    <script type='text/javascript' src='https://s3.amazonaws.com/dynatable-docs-assets/js/highcharts.js'></script>
 </head>
-  <body>
+<body>
 
 <table id="example-table" class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Route</th>
-      <th>Date</th>
-      <th>Year</th>
-      <th>Duration</th>
-      <th>Duration - seconds</th>
-      <th>Distance - Median</th>
-      <th>Distance - GPS</th>
-      <th>Off</th>
-      <th>km/h</th>
-    </tr>
-  </thead>
-  <tbody>
-	<REPLACE>
-  </tbody>
+    <REPLACE>
 </table>
 <script type="text/javascript">
-  $('#example-table').dynatable({
-    features: {
-	paginate: false,
-    	sort: true,
-    	pushState: true,
-    	search: false,
-    	recordCount: true,
-    	perPageSelect: false      	
-    },
-    readers: {
-      'rank': function(el, record) {
-        return Number(el.innerHTML) || 0;
-      }, 
-      'us-$': function(el, record) {
-        return Number(el.innerHTML.replace(/,/g, ''));
-      }
-    },
-    writers: {
-      'rank': function(record) {
-        return record['rank'] ? record['rank'].toString() : '-';
-      }, 
-      'us-$': function(record) {
-        return record['us-$'].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      }
-    }
-  });
+    $('#example-table').dynatable({
+        features: {
+            paginate: false,
+            sort: true,
+            pushState: true,
+            search: false,
+            recordCount: true,
+            perPageSelect: false
+        },
+        readers: {
+            'rank': function (el, record) {
+                return Number(el.innerHTML) || 0;
+            },
+            'us-$': function (el, record) {
+                return Number(el.innerHTML.replace(/,/g, ''));
+            }
+        },
+        writers: {
+            'rank': function (record) {
+                return record['rank'] ? record['rank'].toString() : '-';
+            },
+            'us-$': function (record) {
+                return record['us-$'].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+        }
+    });
 </script>
-
-  </body>
+</body>
 </html>

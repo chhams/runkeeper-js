@@ -1,7 +1,8 @@
 var _ = require('underscore');
 var http = require('http');
 var async = require('async');
-var bearer = require('./token');
+var bearer_chris = require('./token');
+var bearer_jessi = require('./token_j');
 var request = require('request');
 var restify = require('restify');
 var fs = require('fs');
@@ -20,6 +21,21 @@ var dataStuff;
 var chartStuff;
 var items = [];
 
+var loadFile = function(name, cb){
+    fs.readFile(name, 'utf8', function (err,data) {
+        if (err) {
+            return console.log(err);
+        }
+        cb(JSON.parse(data));
+    });
+}
+
+var saveFile = function(name, data){
+    fs.writeFile(name, JSON.stringify(data),function (err){
+        console.log(err);
+    })
+}
+
 fs.readFile('other.html', 'utf8', function (err,data) {
     if (err) {
         return console.log(err);
@@ -34,14 +50,18 @@ fs.readFile('barTest.html', 'utf8', function (err,data) {
     chartStuff = data;
 });
 
-var callApi = function(endpoint, callback) {
+var callApi = function(endpoint, bearer, callback) {
     var request_details = {
         method: 'GET',
         headers: {'Accept': '*\/*',
             'Authorization' : 'Bearer ' + bearer},
         uri: "https://" + api_domain + endpoint
     };
+    console.log('before request')
     request(request_details, function(error, response, body) {
+        console.log(error)
+        console.log(response)
+        console.log(body)
         try {
             parsed = JSON.parse(body);
         } catch(e) {
@@ -56,8 +76,43 @@ var callApi = function(endpoint, callback) {
 var mapByMonth = function(item){
     item.month = new Date(item.start_time).getMonth() + 1;
     item.year = new Date(item.start_time).getFullYear();
+    item.day = new Date(item.start_time).getDay();
     item.date = item.year + '-' + item.month;
+    item.shortdate = item.year + '-' + item.month;
+    item.fulldate = item.year + '-' + item.month + '-' + item.day;
 };
+
+var fillByMonth = function(items){
+    console.log('filling')
+    var found = false;
+    itemsByMonth = [];
+    _.each(items, function(item){
+        console.log('doing item ' + item.date);
+        found = false;
+        _.each(itemsByMonth, function(itemByMonth){
+            if(item.shortdate === itemByMonth.shortdate){
+                found = true;
+                itemByMonth.itemcount = itemByMonth.itemcount + 1;
+                itemByMonth.duration += item.duration;
+                itemByMonth.total_median += item.median;
+            }
+
+        })
+
+        if(!found){
+            var itemByMonth = _.clone(item);
+            itemByMonth.itemcount = 1;
+            itemByMonth.total_median = item.median;
+            itemByMonth.sortByString = (item.year * 1000 + item.month);
+            delete itemByMonth.day;
+            delete itemByMonth.date;
+            itemsByMonth.push(itemByMonth);
+        }
+    })
+
+    return itemsByMonth.sort(compareByMonth);
+
+}
 
 var reduceByMonth = function(items){
     for (var i = 0; i < items.length; ++i) {
@@ -86,6 +141,14 @@ var compare = function ( a,b) {
     if (a.duration < b.duration)
         return -1;
     if (a.duration > b.duration)
+        return 1;
+    return 0;
+}
+
+var compareByMonth = function ( a,b) {
+    if (a.sortByString > b.sortByString)
+        return -1;
+    if (a.sortByString < b.sortByString)
         return 1;
     return 0;
 }
@@ -129,9 +192,12 @@ var isItemSame = function(item1, item2){
     return true;
 };
 
-var loadRunData = function(cb){
+var loadRunData = function(bearer, cb){
 
-callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
+callApi('/fitnessActivities?page=0&pageSize=200', bearer, function(err, body){
+    console.log(err);
+    console.log(body)
+
     items = body.items;
 
     var totalDistance = 0;
@@ -152,7 +218,7 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
         item.minLong = 100;
         item.minLat = 100;
 
-        callApi(item.uri, function (err2, itemBody){
+        callApi(item.uri, bearer, function (err2, itemBody){
             _.each(itemBody.path, function(pp){
                 if(pp.longitude > item.maxLong){
                     item.maxLong = pp.longitude;
@@ -217,6 +283,9 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 
 	reduceByMonth(items);
 
+    saveFile(bearer, items);
+
+
 	cb();
     })
 });
@@ -225,6 +294,19 @@ callApi('/fitnessActivities?page=0&pageSize=200', function(err, body){
 var displayData = function(){
 	var html = dataStuff;
 	var htmlStuff = '';
+
+    var htmlStuff = '<thead><tr>';
+    htmlStuff += '<th>Route</th>';
+    htmlStuff += '<th>Date</th>';
+    htmlStuff += '<th>Year</th>';
+    htmlStuff += '<th>Duration</th>';
+    htmlStuff += '<th>Duration - seconds</th>';
+    htmlStuff += '<th>Distance - Median</th>';
+    htmlStuff += '  <th>Distance - GPS</th>';
+    htmlStuff += ' <th>Off</th>';
+    htmlStuff += ' <th>km/h</th>';
+    htmlStuff += '</tr></thead><tbody>';
+
 	var last2;
 
         _.each(items, function(item){
@@ -239,18 +321,75 @@ var displayData = function(){
             htmlStuff += '<td>' + item.year + '</td>';
             htmlStuff += '<td>' + convertToTime(item.duration) + '</td>';
             htmlStuff += '<td>' + item.duration + '</td>';
-            htmlStuff += '<td>' + Math.floor(item.median) + '</td>';
-            htmlStuff += '<td>' + Math.floor(item.total_distance) + '</td>';
-            htmlStuff += '<td>' + Math.floor(difference(item.median, item.total_distance)) + '</td>';
-            htmlStuff += '<td>' + (item.median / item.duration) * 3.6 + '</td>';
+            htmlStuff += '<td>' + Math.floor(item.median) / 1000 + '</td>';
+            htmlStuff += '<td>' + Math.floor(item.total_distance) / 1000 + '</td>';
+            htmlStuff += '<td>' + Math.floor(difference(item.median, item.total_distance)) / 1000 + '</td>';
+            htmlStuff += '<td>' + Math.floor((item.median / item.duration) * 3.6 * 100) / 100+ '</td>';
 	    htmlStuff += '</tr>';
 
         });
+
+    htmlStuff += '</tbody>';
 
  	html = html.replace('<REPLACE>',htmlStuff);
 
 	return html;
 };
+
+var getTableHeader = function(headers){
+    var htmlStuff = '<thead><tr>';
+    _.each(headers, function(head){
+        htmlStuff += '<th>' + head + '</th>';
+    });
+    htmlStuff += '</tr></thead>';
+}
+
+var displayDataGrouped = function(cb){
+    var html = dataStuff;
+    var htmlStuff = '';
+
+    var htmlStuff = '<thead><tr>';
+    htmlStuff += '<th>Year-Month</th>';
+    htmlStuff += '<th>Activities</th>';
+    htmlStuff += '<th>Duration - seconds</th>';
+    htmlStuff += '<th>Duration</th>';
+    htmlStuff += '<th>Distance</th>';
+    htmlStuff += '<th>Average Distance</th>';
+    htmlStuff += ' <th>km/h</th>';
+    htmlStuff += '</tr></thead><tbody>';
+
+    var last2;
+
+    loadFile(bearer_chris, function(it){
+        var r = fillByMonth(it);
+
+        _.each(r, function(item){
+            if(last2 && last2.route !== item.route){
+                //htmlStuff += ' --- --- --- <br>';
+            };
+            last2 = item;
+
+            htmlStuff += '<tr>';
+            htmlStuff += '<td>' + item.shortdate + '</td>';
+            htmlStuff += '<td>' + item.itemcount + '</td>';
+            htmlStuff += '<td>' + Math.floor(item.duration) + '</td>';
+            htmlStuff += '<td>' + convertToTime(item.duration) + '</td>';
+            htmlStuff += '<td>' + Math.floor(item.total_median ) / 1000 + '</td>';
+            htmlStuff += '<td>' + (Math.floor(item.total_median / item.itemcount) / 1000) + '</td>';
+            htmlStuff += '<td>' + Math.floor((item.total_median / item.duration) * 3.6 * 100) / 100+ '</td>';
+            htmlStuff += '</tr>';
+
+        });
+
+        htmlStuff += '</tbody>';
+
+        html = html.replace('<REPLACE>',htmlStuff);
+
+        cb(html);
+    })
+
+};
+
 
 var displayChart = function(){
 	var html = chartStuff;
@@ -262,44 +401,7 @@ var displayChart = function(){
 	return html;
 };
 
-function respondReload(req, res, next) {
-  res.send('loading data...');
-  console.log('loading...');
-
-  loadRunData(function(){ 
-	console.log('done')
-	res.send('done');
-  });	
-}
-
-function respondData(req, res, next) {
-	res.writeHead(200, {
-  'Content-Length': Buffer.byteLength(displayData()),
-  'Content-Type': 'text/html'
-});
-res.write(displayData());
-res.end();
-}
-
-function respondChart(req, res, next) {
-	res.writeHead(200, {
-  'Content-Length': Buffer.byteLength(displayChart()),
-  'Content-Type': 'text/html'
-});
-res.write(displayChart());
-res.end();
-}
-
-var server = restify.createServer();
-server.get('/runkeeper/reload', respondReload);
-server.get('/runkeeper/data', respondData);
-server.get('/runkeeper/chart', respondChart);
-
-server.listen(3333, function() {
-  console.log('%s listening at %s', server.name, server.url);
-});
-
-
-
-
-
+module.exports.loadRunData = loadRunData;
+module.exports.displayData = displayData;
+module.exports.displayDataGrouped = displayDataGrouped;
+module.exports.displayChart = displayChart;
