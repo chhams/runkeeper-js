@@ -25,13 +25,14 @@ function respondReloadJessi(req, res, next) {
 }
 
 function respondData(req, res, next) {
-    var data = runkeeper.displayData();
-    res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(data),
-        'Content-Type': 'text/html'
+    runkeeper.displayData(function(data){
+        res.writeHead(200, {
+            'Content-Length': Buffer.byteLength(data),
+            'Content-Type': 'text/html'
+        });
+        res.write(data);
+        res.end();
     });
-    res.write(data);
-    res.end();
 }
 
 function respondDataG(req, res, next) {
@@ -64,4 +65,12 @@ server.get('/runkeeper/chart', respondChart);
 
 server.listen(3333, function() {
     console.log('%s listening at %s', server.name, server.url);
+
+    runkeeper.loadRunData(bearer_chris, function(){
+        console.log('loaded runkeeper data for chris...');
+
+        /*runkeeper.loadRunData(bearer_jessi, function(){
+            console.log('loaded runkeeper data for chris...');
+        });*/
+    });
 });
